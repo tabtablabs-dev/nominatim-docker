@@ -1,19 +1,26 @@
-version: "3"
+version: "3.8"
 
 services:
-    nominatim:
-        container_name: nominatim
-        image: mediagis/nominatim:5.1
-        ports:
-            - "9090:8080"
-        environment:
-            # see https://download.geofabrik.de/north-america-latest.osm.pbf for more options
-            PBF_URL: https://download.geofabrik.de/north-america-latest.osm.pbf
-            REPLICATION_URL: https://download.geofabrik.de/north-america/us-updates/
-            NOMINATIM_PASSWORD: very_secure_password
-        volumes:
-            - nominatim-data:/var/lib/postgresql/16/main
-        shm_size: 1gb
+  nominatim:
+    container_name: nominatim
+    image: mediagis/nominatim:5.1
+    ports:
+      - "9090:8080"
+    environment:
+      # US-wide extract + matching replication feed
+      PBF_URL: https://download.geofabrik.de/north-america/us-latest.osm.pbf
+      REPLICATION_URL: https://download.geofabrik.de/north-america/us-updates/
+      NOMINATIM_PASSWORD: very_secure_password
+
+      # Extras for better US results
+      IMPORT_TIGER_ADDRESSES: "true"   # load preprocessed TIGER housenumbers
+      IMPORT_US_POSTCODES: "true"      # optional: adds US postcode centroids
+      NOMINATIM_USE_US_TIGER_DATA: "yes"  # actually use TIGER at query time
+
+      # THREADS: "8"  # optional: parallelize heavy steps a bit more
+    volumes:
+      - nominatim-data:/var/lib/postgresql/16/main
+    shm_size: 8gb   # bump shared memory for the heavy import
 
 volumes:
-    nominatim-data:
+  nominatim-data:
